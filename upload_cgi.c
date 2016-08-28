@@ -358,7 +358,10 @@ int SaveFileInfotoRedis(char *filename, char *fdfs_file_path, char *fdfs_file_ur
 	get_file_suffix(filename, suffix);
 	strcat(redis_value_buf, suffix);
 	
-	rop_list_push(redis_conn, FILE_INFO_LIST, redis_value_buf);
+	rop_list_push(redis_conn, FILE_INFO_LIST, redis_value_buf);		//文件信息表
+	
+	rop_zset_increment(redis_conn, FILE_HOT_ZSET, fdfs_file_path);   //文件点击量表
+	
 	LOG("distributed_memory", "upload_cgi", "存入数据: %s|%s|%s|%s|%s|%s|",fdfs_file_path,fdfs_file_url,filename,create_time,"sheldon lee",suffix);
 SaveFileInfotoRedis_END:
 	
