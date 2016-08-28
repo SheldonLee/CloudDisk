@@ -49,6 +49,7 @@ int main()
 		}
 		else if(strcmp(cmd, "increase") == 0)
 		{
+			//http://192.168.42.47/data?cmd=increase&fileId=group1%2FM00%2F00%2F00%2FOkC1eVfDci2AP22WAAB5cdzrrKY098.jpg
 			query_parse_key_value(query, "fileId", fileId, NULL);
 			
 			LOG("distributed_memory", "data_cgi", "请求数据包：%s", query);
@@ -80,9 +81,8 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 	char file_url[FILE_NAME_LEN] = {0};         //文件URL
 	char file_id[FILE_NAME_LEN] = {0};			//group/00/00/*****
 	
-	int retn = 0;
-	//int endId = fromId + count -1;              //查询截止标示位置
-	//int score = 0;								//权重
+	int retn = 0;								//函数调用返回值
+	int score = 0;								//点击量 pv
 	
 	RVALUES file_list_values = NULL;			//typedef char (*RVALUES)[VALUES_ID_SIZE];
 	int value_num;
@@ -100,8 +100,8 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 	
 	file_list_values = malloc(count * VALUES_ID_SIZE);
 	
-	//获取数据库list表中的[fromId, fromId+count]条数据
-	retn = rop_range_list(redis_conn, FILE_INFO_LIST, fromId, count, file_list_values, &value_num);
+	//获取数据库list表中的[fromId, fromId+count-1]条数据
+	retn = rop_range_list(redis_conn, FILE_INFO_LIST, fromId, fromId + count -1, file_list_values, &value_num);
 	if(retn < 0)
 	{
 		LOG("distributed_memory", "data_cgi", "redis range list error");
@@ -129,7 +129,7 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 				"hot": 0
 			}
 		*/
-		LOG("distributed_memory", "data_cgi", "-------------------------------------------\n");
+		LOG("distributed_memory", "data_cgi", "----------------------%d-begin--------------------\n",i);
 		//id
 		get_value_by_col(file_list_values[i], 1, file_id, VALUES_ID_SIZE - 1, 0);
 		cJSON_AddStringToObject(item, "id", file_id);
@@ -167,7 +167,8 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 		LOG("distributed_memory", "data_cgi", "file_url = %s\n", file_url);		
 		
 		//pv
-		cJSON_AddNumberToObject(item, "pv", 0);
+		score = rop_zset_get_score(redis_conn, FILE_HOT_ZSET, file_id);
+		cJSON_AddNumberToObject(item, "pv", score - 1);
 		
 		//hot
 		 cJSON_AddNumberToObject(item, "hot", 0);		
@@ -184,7 +185,7 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 		memset(pic_name, 0, PIC_NAME_LEN);
 		
 		
-		LOG("distributed_memory", "data_cgi", "-------------------------------------------\n");
+		LOG("distributed_memory", "data_cgi", "----------------------%d-end--------------------\n",i);
 	}
 	
 	cJSON_AddItemToObject(root, "games", array);
@@ -211,7 +212,8 @@ void increase_file_pv(char *fileId)
 		return ;
 	}
 	
-	//
+	//增加文件点击量
+	rop_zset_increment(redis_conn, FILE_HOT_ZSET, fileId);
 	
 	rop_disconnect(redis_conn);
 	
