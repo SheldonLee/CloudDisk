@@ -231,23 +231,16 @@ int UploadFile(char *fdfs_file_name, char *fdfs_file_path)
         dup2(pipfd[1], STDOUT_FILENO);      //重定向子进程输出文件描述符到管道写端
         //执行fastDFS的客户端上传模块
         LOG("distributed_memory", "upload_cgi", "UploadFile fdfs_file_name : %s", fdfs_file_name); 
-       // execlp("ls","ls","-l", NULL);   
-        execlp("fdfs_upload_file", "fdfs_upload_file" , "/etc/fdfs/client.conf", fdfs_file_name , NULL);
-        
-        LOG("distributed_memory", "upload_cgi", "xxxxxxxxxxxx\n"); 
-        
+        execlp("fdfs_upload_file", "fdfs_upload_file" , "/etc/fdfs/client.conf", fdfs_file_name , NULL);      
     }
 
     //父进程负责接收子进程的返回URL
     
     close(pipfd[1]);    //父进程关闭管道写端
     //dup2(pipfd[0], STDIN_FILENO);    //不需要再将父进程的0号文件描述符重定向
-    int len = read(pipfd[0],rawurl, sizeof(rawurl));
-    
+    read(pipfd[0],rawurl, sizeof(rawurl));    
     LOG("distributed_memory", "upload_cgi", "rawurl = %s\n",rawurl); 
-    
-    wait(NULL);     //回收子进程   
-           
+    wait(NULL);     //回收子进程              
     rawurl[strlen(rawurl)-1]='\0';		//这里有个坑，获取到的storage中的存储路径中有\r\n，需要把这个去掉
     strcpy(fdfs_file_path, rawurl);     
     close(pipfd[0]);    //使用完毕后将该描述符关掉，减少资源浪费
