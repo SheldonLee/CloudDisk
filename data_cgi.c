@@ -89,7 +89,7 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 	redisContext *redis_conn = NULL;			//redis数据库连接句柄
 	
 	
-	redis_conn = rop_connectdb_nopwd("127.0.0.1", "6379");
+	redis_conn = rop_connectdb_nopwd("203.189.235.47", "6379");
 	if(redis_conn == NULL)
 	{
 		LOG("distributed_memory", "data_cgi", "redis connected error");
@@ -116,20 +116,22 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 	for(i = 0;i < value_num; i++)
 	{
 		cJSON* item = cJSON_CreateObject();
+		LOG("distributed_memory", "data_cgi", "----------------------%d-begin--------------------\n",i);
 		/*
 			{
-				"id": "group1/M00/00/00/wKgCbFepSKeAOkV4AAY7zSGunKE058.jpg",
+				"id": "group1/M00/00/00/wKgCbFepT0SAOBCtACjizOQy1fU405.rar",
 				"kind": 2,
-				"title_m": "小猫6.jpg",
+				"title_m": "阶段测试_STL_数据结构.rar",
 				"title_s": "文件title_s",
-				"descrip": "2016-08-09 11:06:09",
-				"picurl_m": "http://172.16.0.148/static/file_png/jpg.png",
-				"url": "http://192.168.2.108/group1/M00/00/00/wKgCbFepSKeAOkV4AAY7zSGunKE058.jpg",
-				"pv": 0,
+				"descrip": "2016-08-09 11:34:23",
+				"picurl_m": "http://172.16.0.148/static/file_png/rar.png",
+				"url": "http://192.168.2.108/group1/M00/00/00/wKgCbFepT0SAOBC
+				tACjizOQy1fU405.rar",
+				"pv": 1,
 				"hot": 0
-			}
-		*/
-		LOG("distributed_memory", "data_cgi", "----------------------%d-begin--------------------\n",i);
+			},
+		*/	
+		
 		//id
 		get_value_by_col(file_list_values[i], 1, file_id, VALUES_ID_SIZE - 1, 0);
 		cJSON_AddStringToObject(item, "id", file_id);
@@ -153,6 +155,7 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 		
 		//picurl_m		
 		strcat(picurl, g_host_name);
+		strcat(picurl, ":8888");
 		strcat(picurl, "/static/file_png/");
 		
 		get_file_suffix(filename, suffix);
@@ -205,7 +208,7 @@ void increase_file_pv(char *fileId)
 	
 	redisContext *redis_conn = NULL;			//redis数据库连接句柄
 	
-	redis_conn = rop_connectdb_nopwd("127.0.0.1", "6379");
+	redis_conn = rop_connectdb_nopwd("203.189.235.47", "6379");
 	if(redis_conn == NULL)
 	{
 		LOG("distributed_memory", "data_cgi", "increase_file_pv redis connected error");

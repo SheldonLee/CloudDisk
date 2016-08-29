@@ -229,6 +229,7 @@ int UploadFile(char *fdfs_file_name, char *fdfs_file_path)
         //子进程
         close(pipfd[0]);                    //子进程关闭管道读端
         dup2(pipfd[1], STDOUT_FILENO);      //重定向子进程输出文件描述符到管道写端
+        dup2(pipfd[1], STDERR_FILENO);
         //执行fastDFS的客户端上传模块
         LOG("distributed_memory", "upload_cgi", "UploadFile fdfs_file_name : %s", fdfs_file_name); 
         execlp("fdfs_upload_file", "fdfs_upload_file" , "/etc/fdfs/client.conf", fdfs_file_name , NULL);      
@@ -239,14 +240,14 @@ int UploadFile(char *fdfs_file_name, char *fdfs_file_path)
     close(pipfd[1]);    //父进程关闭管道写端
     //dup2(pipfd[0], STDIN_FILENO);    //不需要再将父进程的0号文件描述符重定向
     read(pipfd[0],rawurl, sizeof(rawurl));    
-    LOG("distributed_memory", "upload_cgi", "rawurl = %s\n",rawurl); 
+    LOG("distributed_memory", "upload_cgi", "rawurl = %s",rawurl); 
     wait(NULL);     //回收子进程              
     rawurl[strlen(rawurl)-1]='\0';		//这里有个坑，获取到的storage中的存储路径中有\r\n，需要把这个去掉
     strcpy(fdfs_file_path, rawurl);     
     close(pipfd[0]);    //使用完毕后将该描述符关掉，减少资源浪费
     LOG("distributed_memory", "upload_cgi", "fdfs_file_path : %s", fdfs_file_path);
     LOG("distributed_memory", "upload_cgi", "文件上传完成");
-    return 0;            
+    return 0;
 }
 
 int GetFileUrl(char *fdfs_file_path, char *fdfs_file_url)
@@ -274,7 +275,7 @@ int GetFileUrl(char *fdfs_file_path, char *fdfs_file_url)
     {
         close(pipfd[0]);//子进程关闭读端
         dup2(pipfd[1], STDOUT_FILENO);
-        
+        dup2(pipfd[1], STDERR_FILENO);
         
         execlp("fdfs_file_info","fdfs_file_info", "/etc/fdfs/client.conf", fdfs_file_path, NULL);
         LOG("distributed_memory", "upload_cgi", "fdfs_file_info error!");
@@ -297,7 +298,7 @@ int GetFileUrl(char *fdfs_file_path, char *fdfs_file_url)
         filepoint2 = strstr(fileinfo, "file create timestamp") - 1; //到IP结尾部分
         strcat(fdfs_file_url,"http://");
         strncat(fdfs_file_url, filepoint1,filepoint2 - filepoint1);
-        strcat(fdfs_file_url,"/");
+        strcat(fdfs_file_url,":8888/");
         strcat(fdfs_file_url, fdfs_file_path); 
                
         
@@ -316,7 +317,7 @@ int SaveFileInfotoRedis(char *filename, char *fdfs_file_path, char *fdfs_file_ur
 {
 	char *redis_value_buf = NULL;
 	redisContext *redis_conn = NULL;
-	redis_conn = rop_connectdb_nopwd("127.0.0.1", "6379");
+	redis_conn = rop_connectdb_nopwd("203.189.235.47", "6379");
 	if(redis_conn == NULL)
 	{
 		LOG("distributed_memory", "upload_cgi", "连接数据库失败");
