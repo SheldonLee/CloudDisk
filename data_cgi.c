@@ -155,7 +155,7 @@ void print_file_list_json(int fromId, int count, char *cmd, char *kind)
 		
 		//picurl_m		
 		strcat(picurl, g_host_name);
-		//strcat(picurl, ":8888");
+		strcat(picurl, ":8888");
 		strcat(picurl, "/static/file_png/");
 		
 		get_file_suffix(filename, suffix);
