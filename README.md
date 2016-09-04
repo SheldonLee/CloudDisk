@@ -13,3 +13,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;    用户通过浏览器上传文件到Nginx服务器后，服务器端的Upload_CGI程序会自动解析http数据包中的文件内容，将文件临时存放在本地，之后通过fastDFS Client上传文件，它询问fastDFS Tracker，该文件该传入哪个Storage，Tracker自动判断哪个Storage上的线路带宽最适合，就将该Storage的地址告诉Client，Client将数据流不经Tracker直接发送给目的Storage，上传完成后Storage返回给Client一个文件存储的路径。
 #### 2.2 浏览逻辑
 ![总体架构图2|center](http://i1.buimg.com/567571/5405ef839671d15e.png)
+
+
+
+
